@@ -15,6 +15,8 @@ class Meal: NSObject, NSCoding {
     //MARK: Properties
     
     var name: String
+    var mealDesc: String
+    var calories: Int
     var photo: UIImage?
     var rating: Int
     
@@ -26,13 +28,15 @@ class Meal: NSObject, NSCoding {
     
     struct PropertyKey {
         static let name = "name"
+        static let mealDesc = "description"
+        static let calories = "calories"
         static let photo = "photo"
         static let rating = "rating"
     }
     
     //MARK: Initialization
     
-    init?(name: String, photo: UIImage?, rating: Int) {
+    init?(name: String, mealDesc: String, calories: Int, photo: UIImage?, rating: Int) {
         
         // The name must not be empty
         guard !name.isEmpty else {
@@ -51,6 +55,8 @@ class Meal: NSObject, NSCoding {
         
         // Initialize stored properties.
         self.name = name
+        self.mealDesc = mealDesc
+        self.calories = calories
         self.photo = photo
         self.rating = rating
         
@@ -60,6 +66,8 @@ class Meal: NSObject, NSCoding {
     
     func encode(with aCoder: NSCoder) {
         aCoder.encode(name, forKey: PropertyKey.name)
+        aCoder.encode(mealDesc, forKey: PropertyKey.mealDesc)
+        aCoder.encode(calories, forKey: PropertyKey.calories)
         aCoder.encode(photo, forKey: PropertyKey.photo)
         aCoder.encode(rating, forKey: PropertyKey.rating)
     }
@@ -72,13 +80,20 @@ class Meal: NSObject, NSCoding {
             return nil
         }
         
+        var mealDesc = aDecoder.decodeObject(forKey: PropertyKey.mealDesc) as? String
+        if mealDesc == nil {
+            mealDesc = ""
+        }
+        
+        let calories = aDecoder.decodeInteger(forKey: PropertyKey.calories)
+
         // Because photo is an optional property of Meal, just use conditional cast.
         let photo = aDecoder.decodeObject(forKey: PropertyKey.photo) as? UIImage
         
         let rating = aDecoder.decodeInteger(forKey: PropertyKey.rating)
         
         // Must call designated initializer.
-        self.init(name: name, photo: photo, rating: rating)
+        self.init(name: name, mealDesc: mealDesc!, calories: calories, photo: photo, rating: rating)
         
     }
 }

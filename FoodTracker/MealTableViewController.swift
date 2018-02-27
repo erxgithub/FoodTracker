@@ -13,6 +13,11 @@ class MealTableViewController: UITableViewController {
     
     //MARK: Properties
     
+    var networkManager: NetworkerType = NetworkManager()
+    var json: [String: Any]?
+    var json2: [[String: Any]]?
+    var token: String?
+    
     var meals = [Meal]()
 
     override func viewDidLoad() {
@@ -29,6 +34,89 @@ class MealTableViewController: UITableViewController {
             // Load the sample data.
             loadSampleMeals()
         }
+        saveMealsApi()
+   }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        var username: String = "erxtest"
+        var password: String = "erxtest"
+        //var token: String = "vyiNZxZBA6bnVSRyK1Z3jnGd"
+        
+        let defaults = UserDefaults.standard
+        if let keyValue = defaults.string(forKey: "username") {
+            username = keyValue
+        }
+        if let keyValue = defaults.string(forKey: "password") {
+            password = keyValue
+        }
+        
+        let alert = UIAlertController(title: "Login", message: nil, preferredStyle: .alert)
+        
+        let login = UIAlertAction(title: "Login", style: .default, handler: { action in
+            username = alert.textFields![0].text!
+            password = alert.textFields![1].text!
+            
+            let apiRequest = ApiRequest(networker: self.networkManager)
+            apiRequest.loginUser(username: username, password: password) { (json, error) in
+                if let error = error {
+                    print("Error: \(error)")
+                }
+                guard let json = json else {
+                    print("Error getting json")
+                    return
+                }
+                self.json = json
+                print(json)
+                self.token = json["token"] as? String
+                OperationQueue.main.addOperation {
+                    let apiRequest = ApiRequest(networker: self.networkManager)
+                    apiRequest.getAllMeals(token: self.token!) { (json, error) in
+                        if let error = error {
+                            print("Error: \(error)")
+                        }
+                        guard let json = json else {
+                            print("Error getting json")
+                            return
+                        }
+                        self.json2 = json
+                        print(json)
+                        OperationQueue.main.addOperation {
+                            
+                            //self.tableView.reloadData()
+                        }
+                    }
+                    
+                    //self.tableView.reloadData()
+                }
+            }
+            
+        })
+        alert.addAction(login)
+        
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel) { action in
+            
+        }
+        alert.addAction(cancel)
+        
+        alert.addTextField(configurationHandler: { textField in
+            if username.count > 0 {
+                textField.text = username
+            } else {
+                textField.placeholder = "Login"
+            }
+        })
+        alert.addTextField(configurationHandler: { textField in
+            if password.count > 0 {
+                textField.text = password
+            } else {
+                textField.placeholder = "Password"
+            }
+            textField.isSecureTextEntry = true
+        })
+        
+        self.present(alert, animated: true)
+        
+        super.viewDidAppear(animated)
     }
 
     override func didReceiveMemoryWarning() {
@@ -170,15 +258,15 @@ class MealTableViewController: UITableViewController {
         let photo2 = UIImage(named: "meal2")
         let photo3 = UIImage(named: "meal3")
 
-        guard let meal1 = Meal(name: "Caprese Salad", photo: photo1, rating: 4) else {
+        guard let meal1 = Meal(name: "Caprese Salad", mealDesc: "Green salad with tomatoes", calories: 10, photo: photo1, rating: 4) else {
             fatalError("Unable to instantiate meal1")
         }
 
-        guard let meal2 = Meal(name: "Chicken and Potatoes", photo: photo2, rating: 5) else {
+        guard let meal2 = Meal(name: "Chicken and Potatoes", mealDesc: "Cicken, potatoes, and asparagus", calories: 250, photo: photo2, rating: 5) else {
             fatalError("Unable to instantiate meal2")
         }
 
-        guard let meal3 = Meal(name: "Pasta with Meatballs", photo: photo3, rating: 3) else {
+        guard let meal3 = Meal(name: "Pasta with Meatballs", mealDesc: "Pasta, meatballs, and tomato suace", calories: 10, photo: photo3, rating: 3) else {
             fatalError("Unable to instantiate meal3")
         }
 
@@ -191,6 +279,29 @@ class MealTableViewController: UITableViewController {
             os_log("Meals successfully saved.", log: OSLog.default, type: .debug)
         } else {
             os_log("Failed to save meals...", log: OSLog.default, type: .error)
+        }
+    }
+    
+    private func saveMealsApi() {
+        print("save meals")
+        for meal in meals {
+            let apiRequest = ApiRequest(networker: self.networkManager)
+            apiRequest.saveMeal(meal: meal) { (json, error) in
+                if let error = error {
+                    print("Error: \(error)")
+                }
+                guard let json = json else {
+                    print("Error getting json")
+                    return
+                }
+                self.json = json
+                print(json)
+                OperationQueue.main.addOperation {
+                    
+                    //self.tableView.reloadData()
+                }
+            }
+
         }
     }
     

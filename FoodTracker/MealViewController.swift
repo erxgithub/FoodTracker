@@ -13,6 +13,8 @@ class MealViewController: UIViewController, UITextFieldDelegate, UIImagePickerCo
     
     //MARK: Properties
     @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var mealDescTextField: UITextField!
+    @IBOutlet weak var caloriesTextField: UITextField!
     @IBOutlet weak var photoImageView: UIImageView!
     @IBOutlet weak var ratingControl: RatingControl!
     @IBOutlet weak var saveButton: UIBarButtonItem!
@@ -40,7 +42,7 @@ class MealViewController: UIViewController, UITextFieldDelegate, UIImagePickerCo
         // Enable the Save button only if the text field has a valid Meal name.
         updateSaveButtonState()
     }
-    
+
     //MARK: UITextFieldDelegate
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -108,11 +110,13 @@ class MealViewController: UIViewController, UITextFieldDelegate, UIImagePickerCo
         }
         
         let name = nameTextField.text ?? ""
+        let mealDesc = mealDescTextField.text ?? ""
+        let calories = Int(caloriesTextField.text ?? "")
         let photo = photoImageView.image
         let rating = ratingControl.rating
         
         // Set the meal to be passed to MealTableViewController after the unwind segue.
-        meal = Meal(name: name, photo: photo, rating: rating)
+        meal = Meal(name: name, mealDesc: mealDesc, calories: calories!, photo: photo, rating: rating)
     }
     
     //MARK: Actions
